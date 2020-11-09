@@ -2,6 +2,9 @@ const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
 
+// set the view engine to ejs
+app.set('view engine', 'ejs');
+
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
@@ -9,7 +12,12 @@ const urlDatabase = {
 
 //registers a handler on the root path
 app.get("/", (req, res) => {
+
+  //this will work for simple text
   res.send("Hello!");
+
+  //for more complex page rendering, we use ejs
+  //res.render('pages/index');
 });
 
 //handles the /urls.json route - gives a json of the database
@@ -22,18 +30,7 @@ app.get("/hello", (req, res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
 
-// //this sets a value for a
-// // route /set will therefore print a = 1
-// app.get("/set", (req, res) => {
-//   const a = 1;
-//   res.send(`a = ${a}`);
-// });
 
-// //this will result in a reference error because a was defined outside scope
-// // route /fetch will therefore print the whole error body
-// app.get("/fetch", (req, res) => {
-//   res.send(`a = ${a}`);
-// });
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
