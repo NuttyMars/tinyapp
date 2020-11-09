@@ -22,6 +22,19 @@ app.get("/hello", (req, res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
 
+// //this sets a value for a
+// // route /set will therefore print a = 1
+// app.get("/set", (req, res) => {
+//   const a = 1;
+//   res.send(`a = ${a}`);
+// });
+
+// //this will result in a reference error because a was defined outside scope
+// // route /fetch will therefore print the whole error body
+// app.get("/fetch", (req, res) => {
+//   res.send(`a = ${a}`);
+// });
+
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
