@@ -12,8 +12,14 @@ app.get("/", (req, res) => {
   res.send("Hello!");
 });
 
+//handles the /urls.json route - gives a json of the database
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
+});
+
+//handles the /hello route - the HTML will be rendered inside the browser
+app.get("/hello", (req, res) => {
+  res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
 
 app.listen(PORT, () => {
