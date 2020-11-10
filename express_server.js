@@ -1,9 +1,13 @@
 const express = require('express');
+const bodyParser = require("body-parser");
+
 const app = express();
 const PORT = 8080; // default port 8080
 
 // set the view engine to ejs
 app.set('view engine', 'ejs');
+// this is to be able to use the body-parser
+app.use(bodyParser.urlencoded({extended: true}));
 
 const urlDatabase = {
   'b2xVn2': 'http://www.lighthouselabs.ca',
@@ -23,12 +27,19 @@ app.get('/', (req, res) => {
 //handles /urls route that shows a table of shortened URLs
 app.get('/urls', (req, res) => {
   const templateVars = { urls: urlDatabase };
+  //console.log(templateVars);
   res.render('urls_index', templateVars);
+});
+
+//handles the path where new URLs are submitted to be shortened
+app.get("/urls/new", (req, res) => {
+  res.render("urls_new");
 });
 
 //handles specific short URL routes that show only one shortened link
 app.get("/urls/:shortURL", (req, res) => {
   const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
+  //console.log(templateVars);
   res.render("urls_show", templateVars);
 });
 
