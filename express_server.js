@@ -14,6 +14,11 @@ const urlDatabase = {
   '9sm5xK': 'http://www.google.com'
 };
 
+function generateRandomString() {
+  let id = Math.random().toString(36).substring(2, 8);
+  return id;
+}
+
 //registers a handler on the root path
 app.get('/', (req, res) => {
 
@@ -29,6 +34,13 @@ app.get('/urls', (req, res) => {
   const templateVars = { urls: urlDatabase };
   //console.log(templateVars);
   res.render('urls_index', templateVars);
+});
+
+//this will return a req.body in the form of an object {longURL: value input}
+//it knows to do this because of the frm formatting in urls_new
+app.post("/urls", (req, res) => {
+  console.log(req.body);  // Log the POST request body to the console
+  res.send("Ok");         // Respond with 'Ok' (we will replace this)
 });
 
 //handles the path where new URLs are submitted to be shortened
