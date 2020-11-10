@@ -14,6 +14,7 @@ const urlDatabase = {
   '9sm5xK': 'http://www.google.com'
 };
 
+//generates a random string of 6 characters
 const generateRandomString =  function() {
   let id = Math.random().toString(36).substring(2, 8);
   return id;
@@ -48,12 +49,14 @@ app.post("/urls", (req, res) => {
   urlDatabase[newURLid] = newURL;
 
   console.log('/urls post');
+  //console.log(req.body.longURL); <-- this comes from the form label in urls_new
   res.redirect(`urls/${newURLid}`);
 });
 
 //handles the path where new URLs are submitted to be shortened
 app.get("/urls/new", (req, res) => {
   console.log("/urls/new");
+  //onsole.log(req.params); <-- empty
   res.render("urls_new");
 });
 
@@ -64,6 +67,18 @@ app.get("/urls/:shortURL", (req, res) => {
   console.log("/urls/new");
   res.render("urls_show", templateVars);
 });
+
+//this handles the input coming from the update form
+app.post("/urls/:shortURL", (req, res) => {
+  //this is coming from our URL
+  const shortURL = req.params.shortURL;
+  //this is coming from urls_show
+  const newURL = req.body.longURL;
+
+  urlDatabase[shortURL] = newURL;
+
+  res.redirect(`/urls/${shortURL}`);
+})
 
 
 //this will redirect the user from the shortened URL to the original one
