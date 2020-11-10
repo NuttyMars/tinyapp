@@ -14,10 +14,10 @@ const urlDatabase = {
   '9sm5xK': 'http://www.google.com'
 };
 
-function generateRandomString() {
+const generateRandomString =  function() {
   let id = Math.random().toString(36).substring(2, 8);
   return id;
-}
+};
 
 //registers a handler on the root path
 app.get('/', (req, res) => {
@@ -39,7 +39,7 @@ app.get('/urls', (req, res) => {
 //it knows to do this because of the frm formatting in urls_new
 app.post("/urls", (req, res) => {
   const newURL = req.body.longURL;
-  newURLid = generateRandomString();
+  let newURLid = generateRandomString();
 
   urlDatabase[newURLid] = newURL;
 
@@ -58,12 +58,14 @@ app.get("/urls/:shortURL", (req, res) => {
   res.render("urls_show", templateVars);
 });
 
+
+//this will redirect the user from the shortened URL to the original one
 app.get("/u/:shortURL", (req, res) => {
   let longURL = urlDatabase[req.params.shortURL];
 
   if (!longURL.includes('http://')) {
     longURL = 'http://' + longURL;
-  };
+  }
   
   res.redirect(longURL);
 });
