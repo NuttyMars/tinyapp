@@ -70,6 +70,15 @@ app.get("/u/:shortURL", (req, res) => {
   res.redirect(longURL);
 });
 
+//this will allwo the user to delete a shortened URL and redirect to urls_index
+app.post('/urls/:shortURL/delete', (req, res) => {
+  const shortURL = req.params.shortURL;
+
+  console.log(shortURL);
+  delete urlDatabase[shortURL];
+  res.redirect('/urls');
+});
+
 
 //handles the /urls.json route - gives a json of the database
 app.get('/urls.json', (req, res) => {
