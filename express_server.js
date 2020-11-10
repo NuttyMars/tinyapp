@@ -21,7 +21,6 @@ function generateRandomString() {
 
 //registers a handler on the root path
 app.get('/', (req, res) => {
-
   //this will work for simple text
   //for more complex page rendering, we use ejs
   res.send('Hello!');
@@ -44,37 +43,28 @@ app.post("/urls", (req, res) => {
 
   urlDatabase[newURLid] = newURL;
 
-
-  console.log('1' );
   res.redirect(`urls/${newURLid}`);
-  //console.log('urlDatabase :', urlDatabase);
-  
 });
-
-
-
 
 //handles the path where new URLs are submitted to be shortened
 app.get("/urls/new", (req, res) => {
   res.render("urls_new");
 });
 
-
-
 //handles specific short URL routes that show only one shortened link
 app.get("/urls/:shortURL", (req, res) => {
   const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
-  //console.log(templateVars);
 
-  console.log('2' );
   res.render("urls_show", templateVars);
 });
 
 app.get("/u/:shortURL", (req, res) => {
-  //console.log(req.params);
-  const longURL = urlDatabase[req.params.shortURL];
+  let longURL = urlDatabase[req.params.shortURL];
 
-  console.log('3' );
+  if (!longURL.includes('http://')) {
+    longURL = 'http://' + longURL;
+  };
+  
   res.redirect(longURL);
 });
 
