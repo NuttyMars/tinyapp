@@ -39,21 +39,45 @@ app.get('/urls', (req, res) => {
 //this will return a req.body in the form of an object {longURL: value input}
 //it knows to do this because of the frm formatting in urls_new
 app.post("/urls", (req, res) => {
-  console.log(req.body);  // Log the POST request body to the console
-  res.send("Ok");         // Respond with 'Ok' (we will replace this)
+  const newURL = req.body.longURL;
+  newURLid = generateRandomString();
+
+  urlDatabase[newURLid] = newURL;
+
+
+  console.log('1' );
+  res.redirect(`urls/${newURLid}`);
+  //console.log('urlDatabase :', urlDatabase);
+  
 });
+
+
+
 
 //handles the path where new URLs are submitted to be shortened
 app.get("/urls/new", (req, res) => {
   res.render("urls_new");
 });
 
+
+
 //handles specific short URL routes that show only one shortened link
 app.get("/urls/:shortURL", (req, res) => {
   const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
   //console.log(templateVars);
+
+  console.log('2' );
   res.render("urls_show", templateVars);
 });
+
+app.get("/u/:shortURL", (req, res) => {
+  //console.log(req.params);
+  const longURL = urlDatabase[req.params.shortURL];
+
+  console.log('3' );
+  res.redirect(longURL);
+});
+
 
 //handles the /urls.json route - gives a json of the database
 app.get('/urls.json', (req, res) => {
