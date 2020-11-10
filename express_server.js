@@ -21,7 +21,9 @@ const generateRandomString =  function() {
 
 //registers a handler on the root path
 app.get('/', (req, res) => {
-  //this will work for simple text
+  console.log('/');
+
+  //res.send() will work for simple text
   //for more complex page rendering, we use ejs
   res.send('Hello!');
 });
@@ -31,23 +33,27 @@ app.get('/', (req, res) => {
 //handles /urls route that shows a table of shortened URLs
 app.get('/urls', (req, res) => {
   const templateVars = { urls: urlDatabase };
-  //console.log(templateVars);
+
+  console.log('/urls get');
   res.render('urls_index', templateVars);
 });
 
 //this will return a req.body in the form of an object {longURL: value input}
-//it knows to do this because of the frm formatting in urls_new
+//it knows to do this because of the form formatting in urls_new
+//the nody is originally a JSON string, but it gets parsed with body-parser
 app.post("/urls", (req, res) => {
   const newURL = req.body.longURL;
   let newURLid = generateRandomString();
 
   urlDatabase[newURLid] = newURL;
 
+  console.log('/urls post');
   res.redirect(`urls/${newURLid}`);
 });
 
 //handles the path where new URLs are submitted to be shortened
 app.get("/urls/new", (req, res) => {
+  console.log("/urls/new");
   res.render("urls_new");
 });
 
@@ -55,6 +61,7 @@ app.get("/urls/new", (req, res) => {
 app.get("/urls/:shortURL", (req, res) => {
   const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
 
+  console.log("/urls/new");
   res.render("urls_show", templateVars);
 });
 
@@ -67,14 +74,15 @@ app.get("/u/:shortURL", (req, res) => {
     longURL = 'http://' + longURL;
   }
   
+  console.log("/u/:shortURL",);
   res.redirect(longURL);
 });
 
-//this will allwo the user to delete a shortened URL and redirect to urls_index
+//this will allow the user to delete a shortened URL and redirect to urls_index
 app.post('/urls/:shortURL/delete', (req, res) => {
   const shortURL = req.params.shortURL;
-
-  console.log(shortURL);
+  console.log('/urls/:shortURL/delete', shortURL);
+  
   delete urlDatabase[shortURL];
   res.redirect('/urls');
 });
