@@ -1,7 +1,6 @@
 const express = require('express');
 const bodyParser = require("body-parser");
 const cookieParser = require('cookie-parser');
-const generateRandomString = require('./helper_functions');
 
 const app = express();
 const PORT = 8080; // default port 8080
@@ -31,6 +30,12 @@ const users = {
   }
 }
 
+//generates a random string of 6 characters (for short URLs)
+const generateRandomId =  function() {
+  let id = Math.random().toString(36).substring(2, 8);
+  return id;
+};
+
 //ROOT ROUTE
 
 //registers a handler on the root path -> redirects to /urls
@@ -51,6 +56,7 @@ app.get('/', (req, res) => {
 app.get('/urls', (req, res) => {
   const templateVars = {
     urls: urlDatabase,
+    user: users[req.cookies['user_id']],
     username: req.cookies.username
   };
 
@@ -62,13 +68,12 @@ app.get('/urls', (req, res) => {
 //it knows to do this because of the form formatting in urls_new
 //the body is originally a JSON string, but it gets parsed with body-parser
 app.post("/urls", (req, res) => {
-  const newURL = req.body.longURL;
-  let newURLid = generateRandomString();
+  const newURL = req.body.longURL; //<-- this comes from the form label in urls_new
+  let newURLid = generateRandomId();
 
   urlDatabase[newURLid] = newURL;
 
   console.log('/urls post');
-  //console.log(req.body.longURL); <-- this comes from the form label in urls_new
   res.redirect(`urls/${newURLid}`);
 });
 
@@ -80,6 +85,7 @@ app.get("/urls/new", (req, res) => {
     urls: urlDatabase,
     shortURL: req.params.shortURL,
     longURL: urlDatabase[req.params.shortURL],
+    user: users[req.cookies['user_id']],
     username: req.cookies.username
   };
 
@@ -93,9 +99,9 @@ app.get("/urls/:shortURL", (req, res) => {
   const templateVars = {
     shortURL: req.params.shortURL,
     longURL: urlDatabase[req.params.shortURL],
+    user: users[req.cookies['user_id']],
     username: req.cookies.username
   };
-
   console.log("/urls/:shortURL");
   res.render("urls_show", templateVars);
 });
@@ -117,6 +123,7 @@ app.post("/urls/:shortURL", (req, res) => {
 app.get("/u/:shortURL", (req, res) => {
   let longURL = urlDatabase[req.params.shortURL];
 
+  //if the user does not put in full address
   if (!longURL.includes('http://')) {
     longURL = 'http://' + longURL;
   }
@@ -148,9 +155,8 @@ app.post('/login', (req, res) => {
 //LOGOUT ROUTES
 
 app.post('/logout', (req, res) => {
-  const username = req.body.username;
-
-  res.clearCookie('username', username);
+  console.log('/logout');
+  res.clearCookie('user_id');
   res.redirect('/urls');
 });
 
@@ -158,11 +164,28 @@ app.post('/logout', (req, res) => {
 
 app.get('/register', (req, res) => {
   const templateVars = { 
+    user: users[req.cookies['user_id']],
     username: req.cookies.username
-   };
+  };
   
   console.log('/register');
   res.render('register', templateVars);
+});
+
+app.post('/register', (req, res) => {
+  const id = generateRandomId();
+  const { email, password } = req.body;
+  const newUser = {
+    id, 
+    email, 
+    password
+  };
+  
+  users[newUser.id] = newUser;
+
+  console.log('/register post');
+  res.cookie('user_id', id);
+  res.redirect('/urls');
 });
 
 
