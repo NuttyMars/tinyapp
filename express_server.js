@@ -66,9 +66,18 @@ app.post("/urls", (req, res) => {
 
 //handles the path where new URLs are submitted to be shortened
 app.get("/urls/new", (req, res) => {
-  console.log("/urls/new");
-  //onsole.log(req.params); <-- empty
-  res.render("urls_new");
+  const templateVars = {
+    urls: urlDatabase,
+    shortURL: req.params.shortURL, 
+    longURL: urlDatabase[req.params.shortURL], 
+    username: req.cookies.username
+  };
+
+  res.render("urls_new", templateVars);
+  
+  // console.log("/urls/new");
+  // //console.log(req.params); <-- empty
+  // res.render("urls_new");
 });
 
 //handles specific short URL routes that show only one shortened link
