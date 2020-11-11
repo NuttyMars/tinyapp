@@ -132,6 +132,15 @@ app.post('/logout', (req, res) => {
   res.redirect('/urls');
 });
 
+app.get('/register', (req, res) => {
+  const templateVars = { 
+    username: req.cookies.username
+   };
+  
+  console.log('/register');
+  res.render('register', templateVars);
+});
+
 
 // //handles the /urls.json route - gives a json of the database
 // app.get('/urls.json', (req, res) => {
