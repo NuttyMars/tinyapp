@@ -125,6 +125,14 @@ app.post('/login', (req, res) => {
   res.redirect('/urls');
 });
 
+app.post('/logout', (req, res) => {
+  const username = req.body.username;
+  //console.log(req.body);
+  res.clearCookie('username', username);
+
+  res.redirect('/urls');
+});
+
 
 //handles the /urls.json route - gives a json of the database
 app.get('/urls.json', (req, res) => {

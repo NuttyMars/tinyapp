@@ -10,17 +10,22 @@
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
       </div>
     </div>
+    <div style="align-content: right; text-align: right">
+      <% if (username) { %>
+        <%= `Logged in as ${username}` %>
+        <form action="/logout" method="POST">
+          <div class="form-group mb-2">
+            <button type="submit">Log out</button>
+          </div>
+        </form>
+      <% } else { %>
+        <form action="/login" method="POST">
+          <div class="form-group mb-2">
+            <input name="username"> %>
+            <button type="submit">Log in</button>
+          </div>
+        </form>
+      <% } %>
+    </div>
   </nav>
-  <div style="align-content: right">
-    <% if (username) { %>
-      <%= `Logged in as ${username}` %>
-    <% } else { %>
-      <form action="/login" method="POST">
-        <div class="form-group mb-2">
-          <input name="username"> %>
-          <button type="submit">Log in</button>
-        </div>
-      </form>
-    <% } %>
-  </div>
 </header>
