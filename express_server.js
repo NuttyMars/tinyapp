@@ -36,6 +36,16 @@ const generateRandomId =  function() {
   return id;
 };
 
+//checks if an email is already in the database
+const isEmailRegistered = function(email, db) {
+  for (const key in db) {
+      if(db[key].email === email) {
+    return true;
+    }
+  }
+  return false;
+}
+
 //ROOT ROUTE
 
 //registers a handler on the root path -> redirects to /urls
@@ -173,17 +183,31 @@ app.get('/register', (req, res) => {
 });
 
 app.post('/register', (req, res) => {
-  const id = generateRandomId();
   const { email, password } = req.body;
+
+  //if any of the two fields is empty, send error
+  if (!email || !password) {
+    return res.send('Error 400: Input values cannot be empty.\nGo back and try again!');
+  }
+  
+  //if the email address is already in use, send error
+  if (isEmailRegistered(email, users)) {
+    return res.send('Error 400: Email is in use.\nGo back and log in!');
+  }
+  
+  //else, create new user with email and password provided
+  const id = generateRandomId();
   const newUser = {
     id, 
     email, 
     password
   };
   
+  //add user to 'database'
   users[newUser.id] = newUser;
 
   console.log('/register post');
+  //create cookie with user id
   res.cookie('user_id', id);
   res.redirect('/urls');
 });
