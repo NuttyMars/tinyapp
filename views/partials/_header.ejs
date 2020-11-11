@@ -11,4 +11,16 @@
       </div>
     </div>
   </nav>
+  <div style="align-content: right">
+    <% if (username) { %>
+      <%= `Logged in as ${username}` %>
+    <% } else { %>
+      <form action="/login" method="POST">
+        <div class="form-group mb-2">
+          <input name="username"> %>
+          <button type="submit">Log in</button>
+        </div>
+      </form>
+    <% } %>
+  </div>
 </header>
