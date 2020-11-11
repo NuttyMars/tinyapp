@@ -1,5 +1,6 @@
 const express = require('express');
 const bodyParser = require("body-parser");
+const cookieParser = require('cookie-parser');
 
 const app = express();
 const PORT = 8080; // default port 8080
@@ -8,6 +9,8 @@ const PORT = 8080; // default port 8080
 app.set('view engine', 'ejs');
 // this is to be able to use the body-parser
 app.use(bodyParser.urlencoded({extended: true}));
+// this is to be able to use the cookie parser
+app.use(cookieParser());
 
 const urlDatabase = {
   'b2xVn2': 'http://www.lighthouselabs.ca',
@@ -33,7 +36,10 @@ app.get('/', (req, res) => {
 //EJS also knows it will deal with ejs templates, so no need to specify extension
 //handles /urls route that shows a table of shortened URLs
 app.get('/urls', (req, res) => {
-  const templateVars = { urls: urlDatabase };
+  const templateVars = {
+    urls: urlDatabase,
+    username: req.cookies.username
+  };
 
   console.log('/urls get');
   res.render('urls_index', templateVars);
@@ -55,30 +61,40 @@ app.post("/urls", (req, res) => {
 
 //handles the path where new URLs are submitted to be shortened
 app.get("/urls/new", (req, res) => {
-  console.log("/urls/new");
-  //onsole.log(req.params); <-- empty
-  res.render("urls_new");
+  const templateVars = {
+    urls: urlDatabase,
+    shortURL: req.params.shortURL,
+    longURL: urlDatabase[req.params.shortURL],
+    username: req.cookies.username
+  };
+
+  res.render("urls_new", templateVars);
 });
 
 //handles specific short URL routes that show only one shortened link
 app.get("/urls/:shortURL", (req, res) => {
-  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
+  const templateVars = {
+    shortURL: req.params.shortURL,
+    longURL: urlDatabase[req.params.shortURL],
+    username: req.cookies.username
+  };
 
-  console.log("/urls/new");
+  console.log("/urls/:shortURL");
   res.render("urls_show", templateVars);
 });
 
-//this handles the input coming from the update form
+//this handles the input coming from the update form on individual short URL pages
 app.post("/urls/:shortURL", (req, res) => {
   //this is coming from our URL
   const shortURL = req.params.shortURL;
   //this is coming from urls_show
   const newURL = req.body.longURL;
 
+  //reassign the value in the object
   urlDatabase[shortURL] = newURL;
 
   res.redirect(`/urls/${shortURL}`);
-})
+});
 
 
 //this will redirect the user from the shortened URL to the original one
@@ -89,7 +105,7 @@ app.get("/u/:shortURL", (req, res) => {
     longURL = 'http://' + longURL;
   }
   
-  console.log("/u/:shortURL",);
+  console.log("/u/:shortURL");
   res.redirect(longURL);
 });
 
@@ -102,16 +118,30 @@ app.post('/urls/:shortURL/delete', (req, res) => {
   res.redirect('/urls');
 });
 
-
-//handles the /urls.json route - gives a json of the database
-app.get('/urls.json', (req, res) => {
-  res.json(urlDatabase);
+app.post('/login', (req, res) => {
+  const username = req.body.username;
+  
+  res.cookie('username', username);
+  res.redirect('/urls');
 });
 
-//handles the /hello route - the HTML will be rendered inside the browser
-app.get('/hello', (req, res) => {
-  res.send('<html><body>Hello <b>World</b></body></html>\n');
+app.post('/logout', (req, res) => {
+  const username = req.body.username;
+
+  res.clearCookie('username', username);
+  res.redirect('/urls');
 });
+
+
+// //handles the /urls.json route - gives a json of the database
+// app.get('/urls.json', (req, res) => {
+//   res.json(urlDatabase);
+// });
+
+// //handles the /hello route - the HTML will be rendered inside the browser
+// app.get('/hello', (req, res) => {
+//   res.send('<html><body>Hello <b>World</b></body></html>\n');
+// });
 
 
 app.listen(PORT, () => {
