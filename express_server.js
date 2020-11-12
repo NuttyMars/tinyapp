@@ -2,7 +2,8 @@
 const express = require('express');
 const bodyParser = require("body-parser");
 const cookieParser = require('cookie-parser');
-
+//to encrypt the passwords
+const bcrypt = require('bcrypt');
 
 const app = express();
 const PORT = 8080; // default port 8080
@@ -56,7 +57,8 @@ const isEmailRegistered = function(email, db) {
 const doesPasswordMatch = function(email, password, db) {
   if(isEmailRegistered(email, db)) {
     for (const key in db) {
-      if(db[key].password === password) {
+      if(bcrypt.compareSync(password, db[key].password)) {
+      //if(db[key].password === password) {
         return true;
       }
     }
@@ -255,6 +257,7 @@ app.get('/register', (req, res) => {
 });
 
 app.post('/register', (req, res) => {
+  //storing email and password as plain text
   const { email, password } = req.body;
 
   //if any of the two fields is empty, send error
@@ -267,18 +270,24 @@ app.post('/register', (req, res) => {
     return res.send('Error 400: Email is in use.\nGo back and log in!');
   }
   
-  //else, create new user with email and password provided
-  const id = generateRandomId();
+  //else, create new user with email and hashed password
+  const id = generateRandomId(); //<-- generates new user id
+  const hashedPassword = bcrypt.hashSync(password, 10);
+
   const newUser = {
     id, 
     email, 
-    password
+    password: hashedPassword
   };
+  
+  console.log('newUser :', newUser);
+
   
   //add user to users database
   users[newUser.id] = newUser;
 
   console.log('/register post');
+  
   //create cookie with user id
   res.cookie('user_id', id);
   res.redirect('/urls');
