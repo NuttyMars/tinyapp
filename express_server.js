@@ -1,11 +1,15 @@
+//for the server operations
 const express = require('express');
 const bodyParser = require("body-parser");
 const cookieParser = require('cookie-parser');
+
 
 const app = express();
 const PORT = 8080; // default port 8080
 
 // set the view engine to ejs
+//EJS knows where to look for the file, so no need to specify the views path in our routes
+//EJS also knows it will deal with ejs templates, so no need to specify extension in our routes
 app.set('view engine', 'ejs');
 // this is to be able to use the body-parser
 app.use(bodyParser.urlencoded({extended: true}));
@@ -37,6 +41,7 @@ const generateRandomId =  function() {
 };
 
 //checks if an email is already in the database
+//returns user object if existing, false otherwise
 const isEmailRegistered = function(email, db) {
   for (const key in db) {
       if(db[key].email === email) {
@@ -46,7 +51,8 @@ const isEmailRegistered = function(email, db) {
   return false;
 }
 
-//checks if the password enetered matches the one in DB
+//checks if the password entered matches the one in DB
+//returns boolean
 const doesPasswordMatch = function(email, password, db) {
   if(isEmailRegistered(email, db)) {
     for (const key in db) {
@@ -58,6 +64,8 @@ const doesPasswordMatch = function(email, password, db) {
   return false;
 }
 
+//sorts through the URLs connected to a specific user ID
+//returns only the URLs we need
 const urlsForUser = function(id) {
   const urlsOfUser = {};
   for (const key in urlDatabase) {
@@ -82,9 +90,8 @@ app.get('/', (req, res) => {
 
 //HOME PAGE ROUTES
 
-//EJS knows where to look for the file, so no need to specify the views path
-//EJS also knows it will deal with ejs templates, so no need to specify extension
 //handles /urls route that shows a table of shortened URLs
+//corresponding template will condition user to be logged in to see data
 app.get('/urls', (req, res) => {
   
   const id = req.cookies['user_id'];
@@ -139,8 +146,6 @@ app.post('/urls/new', (req, res) => {
   const longURL = req.params.longURL;
   console.log('longURL :', longURL);
 
-
-
 });
 
 //DISPLAY OR UPDATE SHORT URL
@@ -165,15 +170,11 @@ app.post("/urls/:shortURL", (req, res) => {
   const newURL = req.body.longURL;
   console.log('newURL :', newURL);
 
-  // console.log('user id', req.cookies['user_id']);
-
   //reassign the value in the object
   if(urlDatabase[shortURL].userID === req.cookies['user_id']) {
     urlDatabase[shortURL].longURL = newURL;
   }
   
-  
-
   res.redirect(`/urls/${shortURL}`);
 });
 
