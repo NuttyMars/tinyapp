@@ -20,12 +20,8 @@
           </div>
         </form>
       <% } else { %>
-        <form action="/login" method="POST">
-          <div class="form-group mb-2">
-            <input name="username">
-            <button type="submit" class="btn btn-primary" style="background-color: Transparent; border-color: black">Log in</button>
-          </div>
-        </form>
+        <a class="nav-item nav-link" href="/login">Log in</a>
+        <a class="nav-item nav-link" href="/register">Register</a>
       <% } %>
     </div>
   </nav>

@@ -40,8 +40,21 @@ const generateRandomId =  function() {
 const isEmailRegistered = function(email, db) {
   for (const key in db) {
       if(db[key].email === email) {
-    return true;
+    return db[key];
     }
+  }
+  return false;
+}
+
+const doesPasswordMatch = function(email, password, db) {
+  if(isEmailRegistered(email, db)) {
+    for (const key in db) {
+      if(db[key].password === password) {
+        return true;
+      }
+    }
+  } else {
+    res.send()
   }
   return false;
 }
@@ -69,6 +82,8 @@ app.get('/urls', (req, res) => {
     user: users[req.cookies['user_id']],
     username: req.cookies.username
   };
+  console.log('user', templateVars.user);
+  console.log('id', req.cookies['user_id']);
 
   console.log('/urls get');
   res.render('urls_index', templateVars);
@@ -99,6 +114,7 @@ app.get("/urls/new", (req, res) => {
     username: req.cookies.username
   };
 
+  console.log("/urls/new");
   res.render("urls_new", templateVars);
 });
 
@@ -155,10 +171,38 @@ app.post('/urls/:shortURL/delete', (req, res) => {
 
 //LOGIN ROUTES
 
+app.get('/login', (req, res) => {
+  const templateVars = {
+    user: users[req.cookies['user_id']],
+    username: req.cookies.username
+  };
+
+  console.log('/login');
+  res.render('login', templateVars);
+})
+
 app.post('/login', (req, res) => {
-  const username = req.body.username;
-  
-  res.cookie('username', username);
+  //console.log('login data:', req.body);
+
+  const { email, password } = req.body;
+
+  const user = isEmailRegistered(email, users);
+
+  if(!user) {
+    return res.send('403: Unathorised action. email')
+  }
+
+  if (!doesPasswordMatch(email, password, users)) {
+    return res.send('403: Unathorised action. password');
+  } else {
+    res.cookie('user_id', user.id);
+  }
+
+
+  // const username = req.body.email;
+  // res.cookie('username', username);
+
+  console.log('/login post')
   res.redirect('/urls');
 });
 
