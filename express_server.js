@@ -13,8 +13,8 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieParser());
 
 const urlDatabase = {
-  'b2xVn2': 'http://www.lighthouselabs.ca',
-  '9sm5xK': 'http://www.google.com'
+  b6UTxQ: { longURL: "https://www.tsn.ca", userID: "aJ48lW" },
+  i3BoGr: { longURL: "https://www.google.ca", userID: "aJ48lW" }
 };
 
 const users = { 
@@ -79,7 +79,7 @@ app.get('/urls', (req, res) => {
     urls: urlDatabase,
     user: users[req.cookies['user_id']],
   };
-  console.log('user', templateVars.user);
+  //console.log('user', templateVars.user);
   console.log('id', req.cookies['user_id']);
 
   console.log('/urls get');
@@ -90,10 +90,12 @@ app.get('/urls', (req, res) => {
 //it knows to do this because of the form formatting in urls_new
 //the body is originally a JSON string, but it gets parsed with body-parser
 app.post("/urls", (req, res) => {
-  const newURL = req.body.longURL; //<-- this comes from the form label in urls_new
+  const longURL = req.body.longURL; //<-- this comes from the form label in urls_new
   let newURLid = generateRandomId();
 
-  urlDatabase[newURLid] = newURL;
+  const userID = req.cookies['user_id'];
+
+  urlDatabase[newURLid] = { longURL, userID };
 
   console.log('/urls post');
   res.redirect(`urls/${newURLid}`);
@@ -115,9 +117,17 @@ app.get("/urls/new", (req, res) => {
   if(!user) {
     return res.redirect('/login');
   }
-
   console.log("/urls/new");
   res.render("urls_new", templateVars);
+});
+
+app.post('/urls/new', (req, res) => {
+  console.log('user/urls post', req.cookies['user_id']); //<-- user.id
+  const longURL = req.params.longURL;
+  console.log('longURL :', longURL);
+
+
+
 });
 
 //DISPLAY OR UPDATE SHORT URL
@@ -129,6 +139,7 @@ app.get("/urls/:shortURL", (req, res) => {
     longURL: urlDatabase[req.params.shortURL],
     user: users[req.cookies['user_id']],
   };
+
   console.log("/urls/:shortURL");
   res.render("urls_show", templateVars);
 });
@@ -139,19 +150,22 @@ app.post("/urls/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
   //this is coming from urls_show
   const newURL = req.body.longURL;
+  console.log('newURL :', newURL);
+
+  //console.log('user/urls/shorturl:', req.cookies['user_id']);
 
   //reassign the value in the object
-  urlDatabase[shortURL] = newURL;
+  urlDatabase[shortURL].longURL = newURL;
 
   res.redirect(`/urls/${shortURL}`);
 });
 
 //this will redirect the user from the shortened URL to the original one
 app.get("/u/:shortURL", (req, res) => {
-  let longURL = urlDatabase[req.params.shortURL];
+  let longURL = urlDatabase[req.params.shortURL].longURL;
 
   //if the user does not put in full address
-  if (!longURL.includes('http://')) {
+  if (!longURL.includes('http' || 'https')) {
     longURL = 'http://' + longURL;
   }
   
@@ -240,7 +254,7 @@ app.post('/register', (req, res) => {
     password
   };
   
-  //add user to 'database'
+  //add user to users database
   users[newUser.id] = newUser;
 
   console.log('/register post');
