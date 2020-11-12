@@ -1,8 +1,9 @@
 //for the server operations
 const express = require('express');
 const bodyParser = require("body-parser");
-const cookieParser = require('cookie-parser');
-//to encrypt the passwords
+//to encrypt the cookies
+var cookieSession = require('cookie-session');
+//to hash the passwords
 const bcrypt = require('bcrypt');
 
 const app = express();
@@ -12,10 +13,19 @@ const PORT = 8080; // default port 8080
 //EJS knows where to look for the file, so no need to specify the views path in our routes
 //EJS also knows it will deal with ejs templates, so no need to specify extension in our routes
 app.set('view engine', 'ejs');
+
 // this is to be able to use the body-parser
 app.use(bodyParser.urlencoded({extended: true}));
-// this is to be able to use the cookie parser
-app.use(cookieParser());
+
+//this is to allow us to use cookie-session
+app.use(cookieSession({
+  name: 'session',
+  keys: ['key 1', 'key 2'],
+
+  // Cookie Options
+  maxAge: 24 * 60 * 60 * 1000 // 24 hours
+}))
+
 
 const urlDatabase = {
   b6UTxQ: { longURL: "https://www.tsn.ca", userID: "aJ48lW" },
@@ -96,7 +106,7 @@ app.get('/', (req, res) => {
 //corresponding template will condition user to be logged in to see data
 app.get('/urls', (req, res) => {
   
-  const id = req.cookies['user_id'];
+  const id = req.session.user_id;
   const user = users[id];
   
   const templateVars = {
@@ -115,7 +125,7 @@ app.post("/urls", (req, res) => {
   const longURL = req.body.longURL; //<-- this comes from the form label in urls_new
   let newURLid = generateRandomId();
 
-  const userID = req.cookies['user_id'];
+  const userID = req.session.user_id;
 
   urlDatabase[newURLid] = { longURL, userID };
 
@@ -131,7 +141,7 @@ app.get("/urls/new", (req, res) => {
     urls: urlDatabase,
     shortURL: req.params.shortURL,
     longURL: urlDatabase[req.params.shortURL],
-    user: users[req.cookies['user_id']],
+    user: users[req.session.user_id]
   };
 
   const user = templateVars.user;
@@ -144,7 +154,7 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.post('/urls/new', (req, res) => {
-  console.log('user/urls post', req.cookies['user_id']); //<-- user.id
+  console.log('user/urls post', req.session.user_id); //<-- user.id
   const longURL = req.params.longURL;
   console.log('longURL :', longURL);
 
@@ -157,7 +167,7 @@ app.get("/urls/:shortURL", (req, res) => {
   const templateVars = {
     shortURL: req.params.shortURL,
     longURL: urlDatabase[req.params.shortURL],
-    user: users[req.cookies['user_id']],
+    user: users[req.session.user_id],
   };
 
   console.log("/urls/:shortURL");
@@ -173,7 +183,7 @@ app.post("/urls/:shortURL", (req, res) => {
   console.log('newURL :', newURL);
 
   //reassign the value in the object
-  if(urlDatabase[shortURL].userID === req.cookies['user_id']) {
+  if(urlDatabase[shortURL].userID === req.session.user_id) {
     urlDatabase[shortURL].longURL = newURL;
   }
   
@@ -200,7 +210,7 @@ app.post('/urls/:shortURL/delete', (req, res) => {
   const shortURL = req.params.shortURL;
   console.log('/urls/:shortURL/delete', shortURL);
 
-  if(urlDatabase[shortURL].userID === req.cookies['user_id']) {
+  if(urlDatabase[shortURL].userID === req.session.user_id) {
     delete urlDatabase[shortURL];
   }
   
@@ -211,7 +221,7 @@ app.post('/urls/:shortURL/delete', (req, res) => {
 
 app.get('/login', (req, res) => {
   const templateVars = {
-    user: users[req.cookies['user_id']],
+    user: users[req.session.user_id],
   };
 
   console.log('/login');
@@ -230,7 +240,7 @@ app.post('/login', (req, res) => {
   if (!doesPasswordMatch(email, password, users)) {
     return res.send('403: Unathorised action. Check your spelling and try again!');
   } else {
-    res.cookie('user_id', user.id);
+    req.session.user_id = user.id;
   }
 
   console.log('/login post')
@@ -241,7 +251,7 @@ app.post('/login', (req, res) => {
 
 app.post('/logout', (req, res) => {
   console.log('/logout');
-  res.clearCookie('user_id');
+  req.session = null;
   res.redirect('/urls');
 });
 
@@ -249,7 +259,7 @@ app.post('/logout', (req, res) => {
 
 app.get('/register', (req, res) => {
   const templateVars = { 
-    user: users[req.cookies['user_id']]
+    user: users[req.session.user_id]
   };
   
   console.log('/register');
@@ -289,7 +299,7 @@ app.post('/register', (req, res) => {
   console.log('/register post');
   
   //create cookie with user id
-  res.cookie('user_id', id);
+  req.session.user_id = id;
   res.redirect('/urls');
 });
 
