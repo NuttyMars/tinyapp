@@ -46,6 +46,7 @@ const isEmailRegistered = function(email, db) {
   return false;
 }
 
+//checks if the password enetered matches the one in DB
 const doesPasswordMatch = function(email, password, db) {
   if(isEmailRegistered(email, db)) {
     for (const key in db) {
@@ -55,6 +56,16 @@ const doesPasswordMatch = function(email, password, db) {
     }
   }  
   return false;
+}
+
+const urlsForUser = function(id) {
+  const urlsOfUser = {};
+  for (const key in urlDatabase) {
+    if(urlDatabase[key].userID === id) {
+      urlsOfUser[key] = urlDatabase[key];
+    }
+  }
+  return urlsOfUser;
 }
 
 //ROOT ROUTE
@@ -75,9 +86,13 @@ app.get('/', (req, res) => {
 //EJS also knows it will deal with ejs templates, so no need to specify extension
 //handles /urls route that shows a table of shortened URLs
 app.get('/urls', (req, res) => {
+  
+  const id = req.cookies['user_id'];
+  const user = users[id];
+  
   const templateVars = {
-    urls: urlDatabase,
-    user: users[req.cookies['user_id']],
+    urls: urlsForUser(id),
+    user
   };
 
   console.log('/urls get');
@@ -150,10 +165,14 @@ app.post("/urls/:shortURL", (req, res) => {
   const newURL = req.body.longURL;
   console.log('newURL :', newURL);
 
-  //console.log('user/urls/shorturl:', req.cookies['user_id']);
+  // console.log('user id', req.cookies['user_id']);
 
   //reassign the value in the object
-  urlDatabase[shortURL].longURL = newURL;
+  if(urlDatabase[shortURL].userID === req.cookies['user_id']) {
+    urlDatabase[shortURL].longURL = newURL;
+  }
+  
+  
 
   res.redirect(`/urls/${shortURL}`);
 });
@@ -177,8 +196,11 @@ app.get("/u/:shortURL", (req, res) => {
 app.post('/urls/:shortURL/delete', (req, res) => {
   const shortURL = req.params.shortURL;
   console.log('/urls/:shortURL/delete', shortURL);
+
+  if(urlDatabase[shortURL].userID === req.cookies['user_id']) {
+    delete urlDatabase[shortURL];
+  }
   
-  delete urlDatabase[shortURL];
   res.redirect('/urls');
 });
 
