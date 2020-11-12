@@ -1,13 +1,18 @@
 //for the server operations
 const express = require('express');
 const bodyParser = require("body-parser");
+
 //to encrypt the cookies
 var cookieSession = require('cookie-session');
+
 //to hash the passwords
 const bcrypt = require('bcrypt');
 
+//to be able to access the helper functions
+const helpers = require('./helpers');
+
 const app = express();
-const PORT = 8080; // default port 8080
+const PORT = 8080; // default port 8080 
 
 // set the view engine to ejs
 //EJS knows where to look for the file, so no need to specify the views path in our routes
@@ -45,27 +50,10 @@ const users = {
   }
 }
 
-//generates a random string of 6 characters (for short URLs)
-const generateRandomId =  function() {
-  let id = Math.random().toString(36).substring(2, 8);
-  return id;
-};
-
-//checks if an email is already in the database
-//returns user object if existing, false otherwise
-const isEmailRegistered = function(email, db) {
-  for (const key in db) {
-      if(db[key].email === email) {
-    return db[key];
-    }
-  }
-  return false;
-}
-
 //checks if the password entered matches the one in DB
 //returns boolean
 const doesPasswordMatch = function(email, password, db) {
-  if(isEmailRegistered(email, db)) {
+  if(helpers.isEmailRegistered(email, db)) {
     for (const key in db) {
       if(bcrypt.compareSync(password, db[key].password)) {
       //if(db[key].password === password) {
@@ -79,13 +67,13 @@ const doesPasswordMatch = function(email, password, db) {
 //sorts through the URLs connected to a specific user ID
 //returns only the URLs we need
 const urlsForUser = function(id) {
-  const urlsOfUser = {};
+  const onlyUserURLs = {};
   for (const key in urlDatabase) {
     if(urlDatabase[key].userID === id) {
-      urlsOfUser[key] = urlDatabase[key];
+      onlyUserURLs[key] = urlDatabase[key];
     }
   }
-  return urlsOfUser;
+  return onlyUserURLs;
 }
 
 //ROOT ROUTE
@@ -123,7 +111,7 @@ app.get('/urls', (req, res) => {
 //the body is originally a JSON string, but it gets parsed with body-parser
 app.post("/urls", (req, res) => {
   const longURL = req.body.longURL; //<-- this comes from the form label in urls_new
-  let newURLid = generateRandomId();
+  let newURLid = helpers.generateRandomId();
 
   const userID = req.session.user_id;
 
@@ -231,7 +219,7 @@ app.get('/login', (req, res) => {
 app.post('/login', (req, res) => {
   const { email, password } = req.body;
 
-  const user = isEmailRegistered(email, users);
+  const user = helpers.isEmailRegistered(email, users);
 
   if(!user) {
     return res.send('403: Unathorised action. User does not exist')
@@ -276,12 +264,12 @@ app.post('/register', (req, res) => {
   }
   
   //if the email address is already in use, send error
-  if (isEmailRegistered(email, users)) {
+  if (helpers.isEmailRegistered(email, users)) {
     return res.send('Error 400: Email is in use.\nGo back and log in!');
   }
   
   //else, create new user with email and hashed password
-  const id = generateRandomId(); //<-- generates new user id
+  const id = helpers.generateRandomId(); //<-- generates new user id
   const hashedPassword = bcrypt.hashSync(password, 10);
 
   const newUser = {
