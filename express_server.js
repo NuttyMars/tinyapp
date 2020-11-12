@@ -53,9 +53,7 @@ const doesPasswordMatch = function(email, password, db) {
         return true;
       }
     }
-  } else {
-    res.send()
-  }
+  }  
   return false;
 }
 
@@ -80,7 +78,6 @@ app.get('/urls', (req, res) => {
   const templateVars = {
     urls: urlDatabase,
     user: users[req.cookies['user_id']],
-    username: req.cookies.username
   };
   console.log('user', templateVars.user);
   console.log('id', req.cookies['user_id']);
@@ -111,7 +108,6 @@ app.get("/urls/new", (req, res) => {
     shortURL: req.params.shortURL,
     longURL: urlDatabase[req.params.shortURL],
     user: users[req.cookies['user_id']],
-    username: req.cookies.username
   };
 
   console.log("/urls/new");
@@ -126,7 +122,6 @@ app.get("/urls/:shortURL", (req, res) => {
     shortURL: req.params.shortURL,
     longURL: urlDatabase[req.params.shortURL],
     user: users[req.cookies['user_id']],
-    username: req.cookies.username
   };
   console.log("/urls/:shortURL");
   res.render("urls_show", templateVars);
@@ -174,7 +169,6 @@ app.post('/urls/:shortURL/delete', (req, res) => {
 app.get('/login', (req, res) => {
   const templateVars = {
     user: users[req.cookies['user_id']],
-    username: req.cookies.username
   };
 
   console.log('/login');
@@ -182,25 +176,19 @@ app.get('/login', (req, res) => {
 })
 
 app.post('/login', (req, res) => {
-  //console.log('login data:', req.body);
-
   const { email, password } = req.body;
 
   const user = isEmailRegistered(email, users);
 
   if(!user) {
-    return res.send('403: Unathorised action. email')
+    return res.send('403: Unathorised action. User does not exist')
   }
 
   if (!doesPasswordMatch(email, password, users)) {
-    return res.send('403: Unathorised action. password');
+    return res.send('403: Unathorised action. Check your spelling and try again!');
   } else {
     res.cookie('user_id', user.id);
   }
-
-
-  // const username = req.body.email;
-  // res.cookie('username', username);
 
   console.log('/login post')
   res.redirect('/urls');
@@ -218,8 +206,7 @@ app.post('/logout', (req, res) => {
 
 app.get('/register', (req, res) => {
   const templateVars = { 
-    user: users[req.cookies['user_id']],
-    username: req.cookies.username
+    user: users[req.cookies['user_id']]
   };
   
   console.log('/register');

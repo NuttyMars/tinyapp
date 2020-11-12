@@ -8,7 +8,6 @@
       <div class="navbar-nav">
         <a class="nav-item nav-link" href="/urls">My URLs</a>
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
-        <a class="nav-item nav-link" href="/register">Register</a>
       </div>
     </div>
     <div style="align-content: right; text-align: right">
@@ -20,8 +19,11 @@
           </div>
         </form>
       <% } else { %>
-        <a class="nav-item nav-link" href="/login">Log in</a>
-        <a class="nav-item nav-link" href="/register">Register</a>
+        <div class="navbar-nav">
+          <a class="nav-item nav-link" href="/login">Log in</a>
+          <a class="nav-item nav-link" href="/register">Register</a>
+        </div>
+
       <% } %>
     </div>
   </nav>
