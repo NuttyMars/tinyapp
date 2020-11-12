@@ -79,8 +79,6 @@ app.get('/urls', (req, res) => {
     urls: urlDatabase,
     user: users[req.cookies['user_id']],
   };
-  //console.log('user', templateVars.user);
-  console.log('id', req.cookies['user_id']);
 
   console.log('/urls get');
   res.render('urls_index', templateVars);
