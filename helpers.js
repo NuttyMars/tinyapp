@@ -15,6 +15,4 @@ const isEmailRegistered = function(email, db) {
   return false;
 }
 
-
-
 module.exports = { generateRandomId, isEmailRegistered }

@@ -9,7 +9,7 @@ var cookieSession = require('cookie-session');
 const bcrypt = require('bcrypt');
 
 //to be able to access the helper functions
-const helpers = require('./helpers');
+const { generateRandomId, isEmailRegistered } = require('./helpers');
 
 const app = express();
 const PORT = 8080; // default port 8080 
@@ -53,7 +53,7 @@ const users = {
 //checks if the password entered matches the one in DB
 //returns boolean
 const doesPasswordMatch = function(email, password, db) {
-  if(helpers.isEmailRegistered(email, db)) {
+  if(isEmailRegistered(email, db)) {
     for (const key in db) {
       if(bcrypt.compareSync(password, db[key].password)) {
       //if(db[key].password === password) {
@@ -111,7 +111,7 @@ app.get('/urls', (req, res) => {
 //the body is originally a JSON string, but it gets parsed with body-parser
 app.post("/urls", (req, res) => {
   const longURL = req.body.longURL; //<-- this comes from the form label in urls_new
-  let newURLid = helpers.generateRandomId();
+  let newURLid = generateRandomId();
 
   const userID = req.session.user_id;
 
@@ -175,7 +175,7 @@ app.post("/urls/:shortURL", (req, res) => {
     urlDatabase[shortURL].longURL = newURL;
   }
   
-  res.redirect(`/urls/${shortURL}`);
+  res.redirect(`/urls/`);
 });
 
 //this will redirect the user from the shortened URL to the original one
@@ -208,9 +208,13 @@ app.post('/urls/:shortURL/delete', (req, res) => {
 //LOGIN ROUTES
 
 app.get('/login', (req, res) => {
-  const templateVars = {
-    user: users[req.session.user_id],
-  };
+  const user = users[req.session.user_id];
+  
+  const templateVars = { user };
+
+  if (user) {
+    return res.redirect('/urls');
+  }
 
   console.log('/login');
   res.render('login', templateVars);
@@ -219,14 +223,18 @@ app.get('/login', (req, res) => {
 app.post('/login', (req, res) => {
   const { email, password } = req.body;
 
-  const user = helpers.isEmailRegistered(email, users);
+  const user = isEmailRegistered(email, users);
+  const passMatch = doesPasswordMatch(email, password, users);
 
-  if(!user) {
-    return res.send('403: Unathorised action. User does not exist')
+  const templateVars = { 
+    user,
+    passMatch,
+    userErr: 'User does not exist',
+    passErr: 'Check your spelling and try again!'
   }
 
-  if (!doesPasswordMatch(email, password, users)) {
-    return res.send('403: Unathorised action. Check your spelling and try again!');
+  if(!user || (user && !passMatch)) {
+    return res.render('login_error', templateVars);
   } else {
     req.session.user_id = user.id;
   }
@@ -258,18 +266,23 @@ app.post('/register', (req, res) => {
   //storing email and password as plain text
   const { email, password } = req.body;
 
+  const templateVars = { 
+    email,
+    password
+   };
+
   //if any of the two fields is empty, send error
   if (!email || !password) {
-    return res.send('Error 400: Input values cannot be empty.\nGo back and try again!');
+    return res.render('register_error', templateVars);
   }
   
   //if the email address is already in use, send error
-  if (helpers.isEmailRegistered(email, users)) {
-    return res.send('Error 400: Email is in use.\nGo back and log in!');
+  if (isEmailRegistered(email, users)) {
+    return res.render('register_error', templateVars);
   }
   
   //else, create new user with email and hashed password
-  const id = helpers.generateRandomId(); //<-- generates new user id
+  const id = generateRandomId(); //<-- generates new user id
   const hashedPassword = bcrypt.hashSync(password, 10);
 
   const newUser = {
