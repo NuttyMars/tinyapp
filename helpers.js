@@ -19,6 +19,6 @@ const isEmailRegistered = function(email, db) {
 //will return boolean
 const verifyUserID = function(cookieID, dbEntry) {
   return cookieID === dbEntry;
-}
+};
 
 module.exports = { generateRandomId, isEmailRegistered, verifyUserID };
