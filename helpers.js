@@ -8,11 +8,17 @@ const generateRandomId =  function() {
 //returns user object if existing, false otherwise
 const isEmailRegistered = function(email, db) {
   for (const key in db) {
-      if(db[key].email === email) {
-    return db[key];
+    if (db[key].email === email) {
+      return db[key];
     }
   }
   return false;
+};
+
+//checks that the ID of the user performing an action is the same as the ID in the cookie
+//will return boolean
+const verifyUserID = function(cookieID, dbEntry) {
+  return cookieID === dbEntry;
 }
 
-module.exports = { generateRandomId, isEmailRegistered }
+module.exports = { generateRandomId, isEmailRegistered, verifyUserID };
