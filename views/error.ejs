@@ -32,12 +32,11 @@
   </header>
   
   <main style="margin: 1em;">
-
-      <h3>There was an error:</h3>
-      <div>
-        <h5><%= error %></h5>
-      </div>
-
+    <h3>There was an error:</h3>
+    <h5><%= error %></h5>
+    <% if(error2) { %>
+      <em><h5><%= error2 %></h5></em>
+    <% } %>
   </main>
   
   <!-- Bootstrap JS -->

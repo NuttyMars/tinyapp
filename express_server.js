@@ -223,12 +223,12 @@ app.post('/login', (req, res) => {
   const templateVars = {
     user,
     passMatch,
-    userErr: 'User does not exist',
-    passErr: 'Check your spelling and try again!'
+    error: 'Please check credentials and try again!',
+    error2: ''
   };
 
   if (!user || (user && !passMatch)) {
-    return res.render('login_error', templateVars);
+    return res.render('error', templateVars);
   } else {
     req.session.user_id = user.id;
   }
@@ -261,17 +261,19 @@ app.post('/register', (req, res) => {
 
   const templateVars = {
     email,
-    password
+    password,
+    error: 'Check your spelling and try again!',
+    error2: '(Input fields cannot be empty)'
   };
 
   //if any of the two fields are empty, send error
   if (!email || !password) {
-    return res.render('register_error', templateVars);
+    return res.render('error', templateVars);
   }
   
   //if the email address is already in use, send error
   if (isEmailRegistered(email, users)) {
-    return res.render('register_error', templateVars);
+    return res.render('error', templateVars);
   }
   
   //else, create new user with email and hashed password
