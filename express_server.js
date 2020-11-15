@@ -146,10 +146,15 @@ app.get("/urls/:shortURL", (req, res) => {
   const user = users[req.session.user_id];
   
   const templateVars = {
+    user,
     shortURL: req.params.shortURL,
     longURL: urlDatabase[req.params.shortURL],
-    user
+    error: 'Please log in or register to see your URLs!'
   };
+
+  if (!user) {
+    return res.render('error', templateVars);
+  }
 
   res.render("urls_show", templateVars);
 });
