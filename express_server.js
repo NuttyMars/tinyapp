@@ -89,10 +89,6 @@ const urlsForUser = function(id) {
 
 //registers a handler on the root path -> redirects to /urls
 app.get('/', (req, res) => {
-
-  //res.send() will work for simple text
-  //for more complex page rendering, we use ejs
-  res.send('Hello!');
   res.redirect('/urls');
 });
 
@@ -147,10 +143,12 @@ app.get("/urls/new", (req, res) => {
 
 //handles specific routes that show only one shortened link
 app.get("/urls/:shortURL", (req, res) => {
+  const user = users[req.session.user_id];
+  
   const templateVars = {
     shortURL: req.params.shortURL,
     longURL: urlDatabase[req.params.shortURL],
-    user: users[req.session.user_id],
+    user
   };
 
   res.render("urls_show", templateVars);
