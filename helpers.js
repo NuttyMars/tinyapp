@@ -8,7 +8,7 @@ const generateRandomId =  function() {
 
 //checks if an email is already in the database
 //returns user object if existing, false otherwise
-const isEmailRegistered = function(email, db) {
+const getUser = function(email, db) {
   for (const key in db) {
     if (db[key].email === email) {
       return db[key];
@@ -28,7 +28,7 @@ const verifyUserID = function(cookieID, dbEntry) {
 const doesPasswordMatch = function(email, password, db) {
 
   //helper functions - returns user object if existing
-  if (isEmailRegistered(email, db)) {
+  if (getUser(email, db)) {
     for (const key in db) {
       if (bcrypt.compareSync(password, db[key].password)) {
         return true;
@@ -38,4 +38,4 @@ const doesPasswordMatch = function(email, password, db) {
   return false;
 };
 
-module.exports = { generateRandomId, isEmailRegistered, verifyUserID, doesPasswordMatch };
+module.exports = { generateRandomId, getUser, verifyUserID, doesPasswordMatch };

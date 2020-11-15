@@ -9,7 +9,7 @@ let cookieSession = require('cookie-session');
 const bcrypt = require('bcrypt');
 
 //to be able to access the helper functions
-const { generateRandomId, isEmailRegistered, verifyUserID, doesPasswordMatch } = require('./helpers');
+const { generateRandomId, getUser, verifyUserID, doesPasswordMatch } = require('./helpers');
 
 //for the server operations
 const app = express();
@@ -74,7 +74,7 @@ const urlsForUser = function(id) {
 
 //HOME PAGE ROUTES
 
-//registers a handler on the root path -> redirects to /urls
+//redirects root path to /urls
 app.get('/', (req, res) => {
   res.redirect('/urls');
 });
@@ -82,7 +82,6 @@ app.get('/', (req, res) => {
 //handles /urls route that shows a table of user's URLs
 //corresponding template will condition user to be logged in to see data
 app.get('/urls', (req, res) => {
-  
   //set in register cookie
   const id = req.session.user_id;
   const user = users[id];
@@ -104,10 +103,8 @@ app.post("/urls", (req, res) => {
   const newURLid = generateRandomId();
   const userID = req.session.user_id;
 
+  //push new entry to database
   urlDatabase[newURLid] = { longURL, userID };
-
-
-  console.log(' POST urls');
 
   res.redirect(`urls/${newURLid}`);
 });
@@ -117,9 +114,7 @@ app.get("/urls/new", (req, res) => {
   const user = users[req.session.user_id];
   const templateVars = {
     user,
-    urls: urlDatabase,
-    shortURL: req.params.shortURL,
-    longURL: urlDatabase[req.params.shortURL]
+    urls: urlDatabase
   };
 
   if (!user) {
@@ -135,18 +130,19 @@ app.get("/urls/new", (req, res) => {
 app.get("/urls/:shortURL", (req, res) => {
   const user = users[req.session.user_id];
   const shortURL = req.params.shortURL;
-  
+  const dbEntry = urlDatabase[shortURL];
+
   //if the short URL does not exist
-  if (!urlDatabase[shortURL]) {
+  if (!dbEntry) {
     return res.render('error', {error: 'The provided URL does not exist!', error2: '' });
   }
   
   const templateVars = {
     user,
     shortURL,
-    longURL: urlDatabase[shortURL].longURL,
+    longURL: dbEntry.longURL,
     error: 'Please log in or register to see your URLs!',
-  }
+  };
 
   if (!user) {
     return res.render('error', {error: 'Please log in or register to see your URLs!', error2: '' });
@@ -157,16 +153,15 @@ app.get("/urls/:shortURL", (req, res) => {
 
 //handles the input coming from the update form on individual short URL pages
 app.post("/urls/:shortURL", (req, res) => {
-
-  //this is coming from our route
   const shortURL = req.params.shortURL;
+  const dbEntry = urlDatabase[shortURL];
 
   //this is coming from urls_show
   const newURL = req.body.longURL;
 
   //reassign the value in the object
-  if (verifyUserID(req.session.user_id, urlDatabase[shortURL].userID)) {
-    urlDatabase[shortURL].longURL = newURL;
+  if (verifyUserID(req.session.user_id, dbEntry.userID)) {
+    dbEntry.longURL = newURL;
   }
 
   res.redirect(`/urls/`);
@@ -174,16 +169,15 @@ app.post("/urls/:shortURL", (req, res) => {
 
 //handles redirect from the shortened URL to the original one
 app.get("/u/:shortURL", (req, res) => {
-
-  const user = users[req.session.user_id];
   const shortURL = req.params.shortURL;
+  const dbEntry = urlDatabase[shortURL];
   
   //if the short URL does not exist
-  if (!urlDatabase[shortURL]) {
+  if (!dbEntry) {
     return res.render('error', {error: 'The provided URL does not exist!', error2: '' });
   }
   
-  let longURL = urlDatabase[req.params.shortURL].longURL;
+  let longURL = dbEntry.longURL;
 
   //if the user does not put in full address
   if (!longURL.includes('http' || 'https')) {
@@ -198,8 +192,9 @@ app.get("/u/:shortURL", (req, res) => {
 //allows the user to delete a shortened URL if logged in
 app.post('/urls/:shortURL/delete', (req, res) => {
   const shortURL = req.params.shortURL;
+  const dbEntry = urlDatabase[shortURL];
 
-  if (verifyUserID(req.session.user_id, urlDatabase[shortURL].userID)) {
+  if (verifyUserID(req.session.user_id, dbEntry.userID)) {
     delete urlDatabase[shortURL];
   }
   
@@ -223,7 +218,7 @@ app.get('/login', (req, res) => {
 //handles the post from the login page
 app.post('/login', (req, res) => {
   const { email, password } = req.body;
-  const user = isEmailRegistered(email, users);
+  const user = getUser(email, users);
   const passMatch = doesPasswordMatch(email, password, users);
 
   const templateVars = {
@@ -252,7 +247,7 @@ app.post('/logout', (req, res) => {
 
 //REGISTER ROUTES
 
-//handles register page
+//gets register page
 app.get('/register', (req, res) => {
   const templateVars = {
     user: users[req.session.user_id]
@@ -261,6 +256,7 @@ app.get('/register', (req, res) => {
   res.render('register', templateVars);
 });
 
+//handles input on register page
 app.post('/register', (req, res) => {
   //storing email and password as plain text
   const { email, password } = req.body;
@@ -278,7 +274,7 @@ app.post('/register', (req, res) => {
   }
   
   //if the email address is already in use, send error
-  if (isEmailRegistered(email, users)) {
+  if (getUser(email, users)) {
     return res.render('error', templateVars);
   }
   
@@ -304,5 +300,3 @@ app.post('/register', (req, res) => {
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
-
-module.exports = { urlDatabase, users }
