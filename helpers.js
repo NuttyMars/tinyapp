@@ -1,3 +1,5 @@
+const bcrypt = require('bcrypt');
+
 //generates a random string of 6 characters (for short URLs)
 const generateRandomId =  function() {
   let id = Math.random().toString(36).substring(2, 8);
@@ -21,4 +23,19 @@ const verifyUserID = function(cookieID, dbEntry) {
   return cookieID === dbEntry;
 };
 
-module.exports = { generateRandomId, isEmailRegistered, verifyUserID };
+//checks if the password entered matches the one in DB
+//returns boolean
+const doesPasswordMatch = function(email, password, db) {
+
+  //helper functions - returns user object if existing
+  if (isEmailRegistered(email, db)) {
+    for (const key in db) {
+      if (bcrypt.compareSync(password, db[key].password)) {
+        return true;
+      }
+    }
+  }
+  return false;
+};
+
+module.exports = { generateRandomId, isEmailRegistered, verifyUserID, doesPasswordMatch };

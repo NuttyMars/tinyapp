@@ -9,7 +9,7 @@ let cookieSession = require('cookie-session');
 const bcrypt = require('bcrypt');
 
 //to be able to access the helper functions
-const { generateRandomId, isEmailRegistered, verifyUserID } = require('./helpers');
+const { generateRandomId, isEmailRegistered, verifyUserID, doesPasswordMatch } = require('./helpers');
 
 //for the server operations
 const app = express();
@@ -57,28 +57,15 @@ const users = {
   }
 };
 
-//checks if the password entered matches the one in DB
-//returns boolean
-const doesPasswordMatch = function(email, password, db) {
-
-  //helper functions - returns user object if existing
-  if (isEmailRegistered(email, db)) {
-    for (const key in db) {
-      if (bcrypt.compareSync(password, db[key].password)) {
-        return true;
-      }
-    }
-  }
-  return false;
-};
-
 //sorts through the URLs connected to a specific user ID
 //returns only the URLs we need
 const urlsForUser = function(id) {
   const onlyUserURLs = {};
-
+  
   for (const key in urlDatabase) {
+  
     if (urlDatabase[key].userID === id) {
+  
       onlyUserURLs[key] = urlDatabase[key];
     }
   }
@@ -118,6 +105,9 @@ app.post("/urls", (req, res) => {
   const userID = req.session.user_id;
 
   urlDatabase[newURLid] = { longURL, userID };
+
+
+  console.log(' POST urls');
 
   res.redirect(`urls/${newURLid}`);
 });
@@ -314,3 +304,5 @@ app.post('/register', (req, res) => {
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
+
+module.exports = { urlDatabase, users }
