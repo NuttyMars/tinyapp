@@ -144,16 +144,22 @@ app.get("/urls/new", (req, res) => {
 //handles specific routes that show only one shortened link
 app.get("/urls/:shortURL", (req, res) => {
   const user = users[req.session.user_id];
+  const shortURL = req.params.shortURL;
+  
+  //if the short URL does not exist
+  if (!urlDatabase[shortURL]) {
+    return res.render('error', {error: 'The provided URL does not exist!', error2: '' });
+  }
   
   const templateVars = {
     user,
-    shortURL: req.params.shortURL,
-    longURL: urlDatabase[req.params.shortURL],
-    error: 'Please log in or register to see your URLs!'
-  };
+    shortURL,
+    longURL: urlDatabase[shortURL].longURL,
+    error: 'Please log in or register to see your URLs!',
+  }
 
   if (!user) {
-    return res.render('error', templateVars);
+    return res.render('error', {error: 'Please log in or register to see your URLs!', error2: '' });
   }
 
   res.render("urls_show", templateVars);
@@ -161,6 +167,7 @@ app.get("/urls/:shortURL", (req, res) => {
 
 //handles the input coming from the update form on individual short URL pages
 app.post("/urls/:shortURL", (req, res) => {
+
   //this is coming from our route
   const shortURL = req.params.shortURL;
 
@@ -177,6 +184,15 @@ app.post("/urls/:shortURL", (req, res) => {
 
 //handles redirect from the shortened URL to the original one
 app.get("/u/:shortURL", (req, res) => {
+
+  const user = users[req.session.user_id];
+  const shortURL = req.params.shortURL;
+  
+  //if the short URL does not exist
+  if (!urlDatabase[shortURL]) {
+    return res.render('error', {error: 'The provided URL does not exist!', error2: '' });
+  }
+  
   let longURL = urlDatabase[req.params.shortURL].longURL;
 
   //if the user does not put in full address
